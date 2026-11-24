@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O Mistério das 7 Respostas — Fases</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+  body {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    min-height: 100vh; display: flex; justify-content: center; align-items: center;
+    padding: 20px; color: #fff;
+  }
+  .game {
+    background: rgba(20, 20, 40, 0.95);
+    border: 2px solid #ffd700; border-radius: 20px;
+    max-width: 780px; width: 100%; padding: 25px;
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+  }
+  h1 { text-align: center; color: #ffd700; font-size: 1.4em; margin-bottom: 6px; text-shadow: 0 0 10px #ffd700; }
+  .subtitle { text-align: center; color: #aaa; margin-bottom: 18px; font-size: 0.85em; }
+  .status { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+  .stat {
+    background: #1a1a3a; padding: 8px 12px; border-radius: 10px;
+    border: 1px solid #444; flex: 1; min-width: 100px; text-align: center;
+  }
+  .stat span { display: block; font-size: 0.7em; color: #aaa; }
+  .stat strong { font-size: 1.1em; color: #ffd700; }
+  .bar { height: 10px; background: #333; border-radius: 6px; overflow: hidden; margin-top: 5px; }
+  .bar-fill { height: 100%; transition: width 0.4s; background: linear-gradient(90deg, #ff416c, #ff4b2b); }
+  .xp-fill { background: linear-gradient(90deg, #00c6ff, #0072ff); }
+  .fase-badge {
+    text-align: center; background: linear-gradient(90deg, #ffd700, #ff9800);
+    color: #000; font-weight: bold; padding: 6px; border-radius: 8px;
+    margin-bottom: 12px; font-size: 0.9em;
+  }
+  .scene { background: #0d0d1f; padding: 20px; border-radius: 12px; border: 1px solid #333; margin-bottom: 18px; min-height: 200px; }
+  .scene h2 { color: #ffd700; margin-bottom: 10px; font-size: 1.1em; }
+  .scene p { line-height: 1.6; margin-bottom: 12px; color: #ddd; font-size: 0.95em; }
+  .question {
+    background: #1a1a3a; padding: 14px; border-radius: 10px;
+    border-left: 4px solid #ffd700; margin: 12px 0; font-weight: bold; color: #fff;
+  }
+  .options { display: flex; flex-direction: column; gap: 9px; }
+  .option {
+    background: #1e1e3e; border: 1px solid #444; padding: 11px 14px;
+    border-radius: 8px; cursor: pointer; transition: all 0.2s; color: #fff;
+    text-align: left; font-size: 0.95em;
+  }
+  .option:hover:not(:disabled) { background: #2e2e5e; border-color: #ffd700; transform: translateX(5px); }
+  .option.correct { background: #1b5e20; border-color: #4caf50; }
+  .option.wrong { background: #b71c1c; border-color: #f44336; }
+  .option:disabled { cursor: not-allowed; opacity: 0.85; }
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .btn { padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: all 0.2s; font-size: 0.85em; }
+  .btn-dica { background: #ff9800; color: #000; }
+  .btn-dica:hover { background: #ffb74d; }
+  .btn-tentar { background: #9c27b0; color: #fff; }
+  .btn-tentar:hover { background: #ba68c8; }
+  .btn-restart { background: #ffd700; color: #000; }
+  .btn-restart:hover { background: #fff176; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .message { padding: 12px; border-radius: 8px; margin-top: 12px; font-weight: bold; animation: fade 0.3s; font-size: 0.9em; }
+  .msg-ok { background: rgba(76, 175, 80, 0.2); border: 1px solid #4caf50; color: #a5d6a7; }
+  .msg-err { background: rgba(244, 67, 54, 0.2); border: 1px solid #f44336; color: #ef9a9a; }
+  .msg-info { background: rgba(255, 215, 0, 0.15); border: 1px solid #ffd700; color: #ffe082; }
+  @keyframes fade { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; } }
+  .final { text-align: center; padding: 20px; background: linear-gradient(135deg, #1a1a3a, #2a2a5a); border-radius: 12px; border: 2px solid #ffd700; }
+  .final h2 { color: #ffd700; font-size: 1.3em; margin-bottom: 12px; }
+  .final .title { font-size: 1.2em; color: #00e676; margin: 12px 0; font-weight: bold; }
+  .final .story { color: #ddd; line-height: 1.6; font-style: italic; margin: 12px 0; font-size: 0.95em; }
+</style>
+</head>
+<body>
+<div class="game">
+  <h1>🎮 O MISTÉRIO DAS 7 RESPOSTAS</h1>
+  <p class="subtitle">RPG por Fases — Perguntas sorteadas a cada partida</p>
+
+  <div class="status">
+    <div class="stat"><span>❤️ HP</span><strong id="hp">100</strong>
+      <div class="bar"><div class="bar-fill" id="hpBar" style="width:100%"></div></div></div>
+    <div class="stat"><span>🧠 XP</span><strong id="xp">0</strong>
+      <div class="bar"><div class="bar-fill xp-fill" id="xpBar" style="width:0%"></div></div></div>
+    <div class="stat"><span>🚪 PERGUNTA</span><strong id="portal">1/7</strong></div>
+  </div>
+
+  <div id="faseBadge" class="fase-badge"></div>
+  <div id="scene" class="scene"></div>
+  <div id="controls" class="controls"></div>
+  <div id="message"></div>
+</div>
+
+<script>
+/* ========== BANCO DE PERGUNTAS POR FASE ========== */
+const bancoFases = [
+  {
+    fase: 1,
+    nome: "FASE 1 — FLORESTA DOS SUSSURROS",
+    historia: "As árvores sussurram enigmas de raciocínio. A pedra antiga brilha.",
+    perguntas: [
+      { pergunta: "Um fazendeiro tem 17 ovelhas. Todas morrem, exceto 9. Quantas ficam?", opcoes: ["8", "9", "17", "0"], correta: 1, dica: "'Exceto 9' = 9 sobrevivem." },
+      { pergunta: "Se você tem 3 maçãs e pega 2, com quantas fica?", opcoes: ["1", "2", "3", "5"], correta: 1, dica: "Você PEGOU 2 — elas agora são suas." },
+      { pergunta: "Qual número vem a seguir? 2, 4, 8, 16, ...", opcoes: ["18", "24", "32", "64"], correta: 2, dica: "Cada número dobra o anterior." },
+      { pergunta: "Quantos meses têm 28 dias?", opcoes: ["1", "2", "Todos", "Nenhum"], correta: 2, dica: "Todos os meses têm pelo menos 28 dias." }
+    ]
+  },
+  {
+    fase: 2,
+    nome: "FASE 2 — CAVERNA DOS ECOS",
+    historia: "Escuridão total. Sua voz ecoa. Enigmas de ciências surgem nas paredes.",
+    perguntas: [
+      { pergunta: "Qual é o único metal líquido à temperatura ambiente?", opcoes: ["Alumínio", "Mercúrio", "Chumbo", "Ferro"], correta: 1, dica: "Usado em termômetros antigos." },
+      { pergunta: "Qual é o planeta mais quente do Sistema Solar?", opcoes: ["Mercúrio", "Vênus", "Marte", "Júpiter"], correta: 1, dica: "Efeito estufa descontrolado." },
+      { pergunta: "Qual gás as plantas absorvem na fotossíntese?", opcoes: ["Oxigênio", "Nitrogênio", "Gás carbônico", "Hidrogênio"], correta: 2, dica: "É o mesmo que liberamos ao respirar." },
+      { pergunta: "Quantos ossos tem o corpo humano adulto?", opcoes: ["206", "300", "150", "250"], correta: 0, dica: "Bebês têm mais; adultos têm 206." }
+    ]
+  },
+  {
+    fase: 3,
+    nome: "FASE 3 — TORRE DO TEMPO",
+    historia: "Um relógio gigante está parado. Enigmas de lógica e matemática aparecem.",
+    perguntas: [
+      { pergunta: "Se 5 máquinas fazem 5 produtos em 5 min, quanto tempo 100 máquinas levam para 100 produtos?", opcoes: ["100 min", "20 min", "5 min", "1 min"], correta: 2, dica: "Cada máquina faz 1 produto em 5 min." },
+      { pergunta: "Qual é o valor de x: 2x + 6 = 3x − 4?", opcoes: ["2", "10", "−10", "5"], correta: 1, dica: "6 + 4 = 3x − 2x." },
+      { pergunta: "Um relógio marca 3:15. Qual o ângulo entre os ponteiros?", opcoes: ["0°", "7,5°", "15°", "30°"], correta: 1, dica: "Horas = 97,5°; minutos = 90°." },
+      { pergunta: "Se hoje é terça, que dia será daqui a 100 dias?", opcoes: ["Quarta", "Quinta", "Sexta", "Sábado"], correta: 1, dica: "100 ÷ 7 = 14 semanas + 2 dias." }
+    ]
+  },
+  {
+    fase: 4,
+    nome: "FASE 4 — PORTÃO DO REINO PERDIDO",
+    historia: "O portão dourado brilha. Enigmas finais de português e lógica.",
+    perguntas: [
+      { pergunta: "Qual frase está correta quanto à regência?", opcoes: ["Assisti o filme.", "Assisti ao filme.", "Assisti no filme.", "Assisti pelo filme."], correta: 1, dica: "'Assistir' = ver exige 'ao'." },
+      { pergunta: "Se todos os Zorks são Morks, e alguns Morks são Torks, então:", opcoes: ["Todos Zorks são Torks", "Alguns Zorks são Torks", "Nenhum Zork é Tork", "Não se pode afirmar"], correta: 3, dica: "Cuidado com conclusão precipitada." },
+      { pergunta: "Qual é o plural de 'cidadão'?", opcoes: ["Cidadãos", "Cidadões", "Cidadans", "Cidadães"], correta: 0, dica: "Termina em 'ãos', como irmãos." },
+      { pergunta: "Qual palavra está escrita corretamente?", opcoes: ["Excessão", "Exceção", "Exeção", "Essessão"], correta: 1, dica: "Vem de 'exceto'." }
+    ]
+  }
+];
+
+/* ========== CONFIGURAÇÃO ========== */
+const PERGUNTAS_POR_FASE = 2; // 4 fases × 2 = 8 perguntas (ajuste se quiser)
+let hp = 100, xp = 0;
+let filaPerguntas = [];
+let indiceAtual = 0;
+let faseAtual = 0;
+let usouDica = false, tentouDeNovo = false, respondido = false;
+
+const sceneEl = document.getElementById('scene');
+const controlsEl = document.getElementById('controls');
+const messageEl = document.getElementById('message');
+const faseBadgeEl = document.getElementById('faseBadge');
+
+/* Embaralha array (Fisher-Yates) */
+function embaralhar(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* Monta a fila de perguntas: sorteia N de cada fase */
+function montarFila() {
+  filaPerguntas = [];
+  bancoFases.forEach((f, idx) => {
+    const sorteadas = embaralhar(f.perguntas).slice(0, PERGUNTAS_POR_FASE);
+    sorteadas.forEach(p => {
+      filaPerguntas.push({ ...p, faseIdx: idx, faseNome: f.nome, historia: f.historia });
+    });
+  });
+}
+
+function atualizarStatus() {
+  document.getElementById('hp').textContent = hp;
+  document.getElementById('xp').textContent = xp;
+  document.getElementById('portal').textContent = (indiceAtual + 1) + '/' + filaPerguntas.length;
+  document.getElementById('hpBar').style.width = Math.max(0, hp) + '%';
+  document.getElementById('xpBar').style.width = Math.min(100, (xp / (filaPerguntas.length * 20)) * 100) + '%';
+}
+
+function mostrarMensagem(texto, tipo) {
+  messageEl.innerHTML = '<div class="message msg-' + tipo + '">' + texto + '</div>';
+}
+
+function renderizarPergunta() {
+  if (indiceAtual >= filaPerguntas.length) return telaFinal();
+  respondido = false; usouDica = false; tentouDeNovo = false;
+  const p = filaPerguntas[indiceAtual];
+
+  faseBadgeEl.textContent = p.faseNome;
+  sceneEl.innerHTML = `
+    <h2>🚪 PERGUNTA ${indiceAtual + 1} — ${p.faseNome.split('—')[1]?.trim() || ''}</h2>
+    <p>${p.historia}</p>
+    <div class="question">"${p.pergunta}"</div>
+    <div class="options" id="options"></div>
+  `;
+  const opts = document.getElementById('options');
+  p.opcoes.forEach((op, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = String.fromCharCode(65 + i) + ') ' + op;
+    btn.onclick = () => responder(i, btn);
+    opts.appendChild(btn);
+  });
+  controlsEl.innerHTML = `
+    <button class="btn btn-dica" id="btnDica" onclick="usarDica()">💡 Usar Dica (−10 XP)</button>
+    <button class="btn btn-tentar" id="btnTentar" onclick="tentarDeNovo()">💪 Tentar de Novo (−10 HP)</button>
+  `;
+  atualizarStatus();
+}
+
+function usarDica() {
+  if (usouDica || respondido) return;
+  if (xp < 10) { mostrarMensagem("❌ XP insuficiente para usar dica!", "err"); return; }
+  xp -= 10; usouDica = true; atualizarStatus();
+  mostrarMensagem("💡 DICA: " + filaPerguntas[indiceAtual].dica, "info");
+  document.getElementById('btnDica').disabled = true;
+}
+
+function tentarDeNovo() {
+  if (tentouDeNovo || respondido) return;
+  if (hp <= 10) { mostrarMensagem("❌ HP insuficiente!", "err"); return; }
+  hp -= 10; tentouDeNovo = true; atualizarStatus();
+  mostrarMensagem("💪 Você tentou de novo! Escolha outra resposta. (−10 HP)", "info");
+  document.getElementById('btnTentar').disabled = true;
+}
+
+function responder(indice, btn) {
+  if (respondido) return;
+  respondido = true;
+  const p = filaPerguntas[indiceAtual];
+  const options = document.querySelectorAll('.option');
+  options.forEach(o => o.disabled = true);
+
+  if (indice === p.correta) {
+    btn.classList.add('correct');
+    xp += 20; hp = Math.min(100, hp + 5); atualizarStatus();
+    mostrarMensagem("✅ CORRETO! +20 XP e +5 HP.", "ok");
+    setTimeout(avancar, 1600);
+  } else {
+    btn.classList.add('wrong');
+    options[p.correta].classList.add('correct');
+    hp -= 15; xp = Math.max(0, xp - 5); atualizarStatus();
+    if (hp <= 0) {
+      mostrarMensagem("💀 Aemir desmaiou! Voltou ao início da pergunta com 50 HP.", "err");
+      hp = 50;
+      setTimeout(() => { atualizarStatus(); renderizarPergunta(); }, 2200);
+      return;
+    }
+    mostrarMensagem("❌ ERRADO! −15 HP. A resposta certa era: " + p.opcoes[p.correta], "err");
+    setTimeout(avancar, 2200);
+  }
+}
+
+function avancar() {
+  indiceAtual++;
+  if (indiceAtual < filaPerguntas.length) renderizarPergunta();
+  else telaFinal();
+}
+
+function telaFinal() {
+  let titulo = "";
+  const maxXp = filaPerguntas.length * 20;
+  if (xp >= maxXp * 0.9) titulo = "🏆 SÁBIO LENDÁRIO DE ELDÓRIA";
+  else if (xp >= maxXp * 0.65) titulo = "🌟 AVENTUREIRO CORAJOSO";
+  else if (xp >= maxXp * 0.4) titulo = "🧭 EXPLORADOR EM TREINAMENTO";
+  else titulo = "🌱 CURIOSO APRENDIZ";
+
+  faseBadgeEl.textContent = "🏁 FIM DA JORNADA";
+  sceneEl.innerHTML = `
+    <div class="final">
+      <h2>🏆 O SEGREDO REVELADO</h2>
+      <p class="story">O Reino Perdido se abre. Não há ouro, nem coroas. Há apenas um espelho.<br><br>
+      Aemir olha para si mesmo e entende:</p>
+      <p class="story">"O maior segredo de Eldória é que o verdadeiro aventureiro não é aquele que acerta todas as respostas... mas aquele que não tem medo de perguntar."</p>
+      <div class="title">${titulo}</div>
+      <p>❤️ HP Final: <strong>${hp}</strong> | 🧠 XP Final: <strong>${xp}</strong> / ${maxXp}</p>
+    </div>
+  `;
+  controlsEl.innerHTML = `<button class="btn btn-restart" onclick="reiniciar()">🔄 Jogar Novamente (novas perguntas!)</button>`;
+  messageEl.innerHTML = "";
+}
+
+function reiniciar() {
+  hp = 100; xp = 0; indiceAtual = 0;
+  montarFila();
+  atualizarStatus(); renderizarPergunta(); messageEl.innerHTML = "";
+}
+
+/* INÍCIO */
+montarFila();
+renderizarPergunta();
+</script>
+</body>
+</html>
